@@ -12,3 +12,4 @@ C:\Users\mikas\Documents\Projects\OnyxServer\obj\Debug\net10.0\refint\OnyxServer
 C:\Users\mikas\Documents\Projects\OnyxServer\obj\Debug\net10.0\OnyxServer.pdb
 C:\Users\mikas\Documents\Projects\OnyxServer\obj\Debug\net10.0\OnyxServer.genruntimeconfig.cache
 C:\Users\mikas\Documents\Projects\OnyxServer\obj\Debug\net10.0\ref\OnyxServer.dll
+C:\Users\mikas\Documents\Projects\OnyxServer\obj\Debug\net10.0\OnyxServer.sourcelink.json
