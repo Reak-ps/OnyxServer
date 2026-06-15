@@ -76,6 +76,30 @@ Listening on port 8080
 
 ---
 
+## Roadmap
+
+OnyxServer is just getting started. Here's what's planned:
+
+### 🔧 Core Improvements
+- [ ] **MIME Type support** — correctly set `Content-Type` headers for HTML, CSS, JS, images, fonts, and more so browsers handle files properly
+- [ ] **CLI Arguments** — pass port, folder, and other options directly via command line instead of relying solely on the `.conf` file
+- [ ] **Multi-threading / performance** — handle concurrent requests properly without blocking, using async pipelines and connection pooling
+
+### 🔒 Security
+- [ ] **HTTPS / SSL support** — serve over TLS with certificate configuration
+- [ ] **Basic Auth** — protect routes or the entire server with username/password authentication
+
+### 📁 File Serving
+- [ ] **Directory listing** — auto-generate a browsable file index when no default file is found in a directory
+
+### 🌐 Hosting
+- [ ] **Virtual Hosts** — serve multiple sites from one server instance, routing by domain or subdomain
+
+### 📋 Logging
+- [ ] **File logging** — write request logs and errors to a persistent log file with timestamps
+
+---
+
 ## Built With
 
 - C# / .NET
