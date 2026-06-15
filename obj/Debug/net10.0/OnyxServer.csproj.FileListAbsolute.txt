@@ -1,0 +1,14 @@
+C:\Users\mikas\Documents\Projects\OnyxServer\bin\Debug\net10.0\OnyxServer.exe
+C:\Users\mikas\Documents\Projects\OnyxServer\bin\Debug\net10.0\OnyxServer.deps.json
+C:\Users\mikas\Documents\Projects\OnyxServer\bin\Debug\net10.0\OnyxServer.runtimeconfig.json
+C:\Users\mikas\Documents\Projects\OnyxServer\bin\Debug\net10.0\OnyxServer.dll
+C:\Users\mikas\Documents\Projects\OnyxServer\bin\Debug\net10.0\OnyxServer.pdb
+C:\Users\mikas\Documents\Projects\OnyxServer\obj\Debug\net10.0\OnyxServer.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\mikas\Documents\Projects\OnyxServer\obj\Debug\net10.0\OnyxServer.AssemblyInfoInputs.cache
+C:\Users\mikas\Documents\Projects\OnyxServer\obj\Debug\net10.0\OnyxServer.AssemblyInfo.cs
+C:\Users\mikas\Documents\Projects\OnyxServer\obj\Debug\net10.0\OnyxServer.csproj.CoreCompileInputs.cache
+C:\Users\mikas\Documents\Projects\OnyxServer\obj\Debug\net10.0\OnyxServer.dll
+C:\Users\mikas\Documents\Projects\OnyxServer\obj\Debug\net10.0\refint\OnyxServer.dll
+C:\Users\mikas\Documents\Projects\OnyxServer\obj\Debug\net10.0\OnyxServer.pdb
+C:\Users\mikas\Documents\Projects\OnyxServer\obj\Debug\net10.0\OnyxServer.genruntimeconfig.cache
+C:\Users\mikas\Documents\Projects\OnyxServer\obj\Debug\net10.0\ref\OnyxServer.dll
