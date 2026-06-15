@@ -45,8 +45,9 @@ namespace OnyxServer
                 try 
                 {
                     // TRY TO READ AND SEND THE FILE
-                    string responseString = File.ReadAllText(fullpath);
-                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                    string extension = Path.GetExtension(fullpath);
+                    response.ContentType = GetMimeType(extension);
+                    byte[] buffer = File.ReadAllBytes(fullpath);
 
                     response.ContentLength64 = buffer.Length;
                     System.IO.Stream output = response.OutputStream;
@@ -61,6 +62,20 @@ namespace OnyxServer
                     response.StatusCode = 404; // HTTP Code für "Not Found"
                     response.Close();
                 }
+            }
+        }
+        
+        static string GetMimeType(string fileEnding)
+        {
+            switch (fileEnding.ToLower())
+            {
+                case ".html": return "text/html; charset=utf-8";
+                case ".css":  return "text/css";
+                case ".js":   return "application/javascript";
+                case ".png":  return "image/png";
+                case ".jpg":  return "image/jpeg";
+                case ".jpeg": return "image/jpeg";
+                default:      return "application/octet-stream"; // STANDART NONE FILES
             }
         }
     }
