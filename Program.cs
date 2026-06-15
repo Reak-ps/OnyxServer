@@ -42,24 +42,59 @@ namespace OnyxServer
                 // STICKY SITUATIONS ARE NEEDED STICK EVERTHING TOGEHTER
                 string fullpath = $"{mainFolder}{folder}{requestedfile}";
 
-                try 
+try 
                 {
-                    // TRY TO READ AND SEND THE FILE
-                    string extension = Path.GetExtension(fullpath);
-                    response.ContentType = GetMimeType(extension);
-                    byte[] buffer = File.ReadAllBytes(fullpath);
+                    // IF IT IS A DIR SHOW THE FOLDERCONTENTS
+                    if (Directory.Exists(fullpath))
+                    {
+                        string[] files = Directory.GetFiles(fullpath);
+                        string html = "<html><body style='font-family:sans-serif;'><h1>FOLDERCONTENTS:</h1><ul>";
+    
+                        foreach (string singleFile in files)
+                        {
+                            string name = Path.GetFileName(singleFile);
+                            html += $"<li><a href='{requestedfile}/{name}'>{name}</a></li>";
+                        }
+    
+                        html += "</ul></body></html>";
+                        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(html);
+    
+                        response.ContentType = "text/html; charset=utf-8";
+                        response.ContentLength64 = buffer.Length;
+    
+                        System.IO.Stream output = response.OutputStream;
+                        output.Write(buffer, 0, buffer.Length);
+                        output.Close();
+    
+                        string logMessage = $"[{DateTime.Now}] [DIR] LISTED: {requestedfile}";
+                        Console.WriteLine(logMessage);
+                        File.AppendAllText(mainFolder + "server.log", logMessage + "\n");
+                    }
+                    // IF IT IS A FILE SEND  IT TO THE FCKING BROWSER
+                    else
+                    {
+                        string extension = Path.GetExtension(fullpath);
+                        response.ContentType = GetMimeType(extension);
+                        byte[] buffer = File.ReadAllBytes(fullpath);
+                        
+                        response.ContentLength64 = buffer.Length;
+                        System.IO.Stream output = response.OutputStream;
+                        output.Write(buffer, 0, buffer.Length);
+                        output.Close();
+                        
+                        string logMessage = $"[{DateTime.Now}] [OKAY] DELIVERED: {requestedfile}";
+                        Console.WriteLine(logMessage);
+                        File.AppendAllText(mainFolder + "server.log", logMessage + "\n");   
+                    }
+                } 
 
-                    response.ContentLength64 = buffer.Length;
-                    System.IO.Stream output = response.OutputStream;
-                    output.Write(buffer, 0, buffer.Length);
-                    
-                    output.Close();
-                    Console.WriteLine($"[OKAY] DELIVERED: {requestedfile}");
-                }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[INTERGALCTIC ERROR] FILE NOT FOUND: {fullpath}");
-                    response.StatusCode = 404; // HTTP Code für "Not Found"
+                    string errorMessage = $"[{DateTime.Now}] [ERROR 404] NOT FOUND: {fullpath}";
+                    Console.WriteLine(errorMessage);
+                    File.AppendAllText(mainFolder + "server.log", errorMessage + "\n");    
+                    
+                    response.StatusCode = 404; // HTTP Code for "Not Found"
                     response.Close();
                 }
             }
