@@ -1,4 +1,4 @@
-![OnyxServer Banner](banner.png)
+![OnyxServer Banner](https://i.ibb.co/dwYT1B8T/banner.png)
 
 <div align="center">
 
