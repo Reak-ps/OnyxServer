@@ -24,6 +24,11 @@ namespace OnyxServer
             string file = fileparts[1];
             string[] notfoundparts = config[4].Split('=');
             string notfound = notfoundparts[1];
+            string[] forbidden =  config[5].Split('=');
+            string forb = forbidden[1];
+            string[] dircontents = config[6].Split('=');
+            string dir = dircontents[1];
+            
 
             HttpListener listener = new HttpListener();
             listener.Prefixes.Add($"http://{ip}:{port}/");
@@ -41,15 +46,26 @@ namespace OnyxServer
                     requestedfile = $"/{file}";
                 }
 
-                // STICKY SITUATIONS ARE NEEDED STICK EVERTHING TOGEHTER
+                // This is for safety and putting everything togheter
                 string fullpath = $"{mainFolder}{folder}{requestedfile}";
                 if (requestedfile.Contains(".."))
                 {
                     string errorMessage = $"[{DateTime.Now}] {GetStatusLabel(403)} {fullpath}";
                     Console.WriteLine(errorMessage);
                     File.AppendAllText(mainFolder + "server.log", errorMessage + "\n");    
+                    string forbiddenerror = $"{mainFolder}{folder}/{forb}";
                     
-                    response.StatusCode = 403; // HTTP Code for "forbidden"
+                    string extension = Path.GetExtension(forb);
+                    response.ContentType = GetMimeType(extension);
+                    byte[] buffer = File.ReadAllBytes(forbiddenerror);
+                    
+                    response.ContentLength64 = buffer.Length;
+                    response.StatusCode = 403;
+                    
+                    System.IO.Stream output = response.OutputStream;
+                    output.Write(buffer, 0, buffer.Length);
+                    output.Close();
+                    
                     response.Close();
                     continue;
                 }
@@ -60,15 +76,19 @@ try
                     if (Directory.Exists(fullpath))
                     {
                         string[] files = Directory.GetFiles(fullpath);
-                        string html = "<html><body style='font-family:sans-serif;'><h1>FOLDERCONTENTS:</h1><ul>";
+                        string listItems = "";
     
                         foreach (string singleFile in files)
                         {
                             string name = Path.GetFileName(singleFile);
-                            html += $"<li><a href='{requestedfile}/{name}'>{name}</a></li>";
+                            listItems += $"<li><a href='{requestedfile}/{name}'>{name}</a></li>\n";
                         }
     
-                        html += "</ul></body></html>";
+                        // new magical things happen here 
+                        string templatePath = $"{mainFolder}{folder}/{dir}";
+                        string html = File.ReadAllText(templatePath);
+                        html = html.Replace("###FILE_LIST###", listItems);
+    
                         byte[] buffer = System.Text.Encoding.UTF8.GetBytes(html);
     
                         response.ContentType = "text/html; charset=utf-8";
@@ -144,7 +164,7 @@ try
                 case 400: return "[400] Bad Request";
                 case 404: return "[404] Not Found";
                 case 403: return "[403] NO TOUCHY FORBIDDEN";
-                case 500: return "[500] OH OH THR SERVER IS NOT FEELING WELL INTERNAL SERVER ERROR";
+                case 500: return "[500] OH OH THE SERVER IS NOT FEELING WELL (INTERNAL SERVER ERROR)";
                 default: return "[SERVER] I DONT EVEN KNOW WHAT THIS IS NOW";
             }
         }

@@ -7,30 +7,35 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #121214;
+    /* Leichter Farbverlauf im Hintergrund für mehr Tiefe */
+    background: linear-gradient(135deg, #0d0d0f 0%, #16161a 100%);
     color: #e1e1e6;
     line-height: 1.6;
+    min-height: 100vh;
 }
 
 .container {
     width: 90%;
-    max-width: 800px;
+    max-width: 850px;
     margin: 0 auto;
     padding: 20px;
 }
 
 /* Header */
 header {
-    background-color: #1a1a1e;
-    padding: 40px 0;
+    background: rgba(26, 26, 30, 0.7);
+    backdrop-filter: blur(10px); /* Glas-Effekt */
+    padding: 50px 0;
     text-align: center;
     border-bottom: 2px solid #00adb5;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 header h1 {
-    font-size: 2.5rem;
+    font-size: 3rem;
     color: #fff;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
 }
 
 header h1 span {
@@ -39,35 +44,44 @@ header h1 span {
 
 header p {
     color: #87868b;
-    font-size: 1.1rem;
-    margin-top: 5px;
+    font-size: 1.2rem;
+    margin-top: 8px;
+    font-weight: 300;
 }
 
 /* Main Content */
 main {
-    margin-top: 30px;
+    margin-top: 40px;
 }
 
+/* Modern Cards */
 .card {
     background-color: #1a1a1e;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    margin-bottom: 20px;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    margin-bottom: 25px;
     border-left: 5px solid #00adb5;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
 }
 
 .card h2 {
     color: #fff;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    font-size: 1.8rem;
 }
 
 /* Features Grid */
 .features {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 20px;
+    gap: 25px;
+    margin-bottom: 25px;
 }
 
 @media (max-width: 600px) {
@@ -78,49 +92,106 @@ main {
 
 .feat-box {
     background-color: #202024;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid #2a2a2e;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.feat-box:hover {
+    transform: translateY(-5px);
+    border-color: #00adb5;
 }
 
 .feat-box h3 {
     color: #00adb5;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    font-size: 1.3rem;
 }
 
 .feat-box p {
     color: #a8a8b3;
-    font-size: 0.95rem;
+    font-size: 1rem;
 }
 
-/* Button & JS Output */
-button {
+/* Buttons & Links (angepasst für deine a-Tags im 404/403) */
+button, a {
     background-color: #00adb5;
     color: #fff;
     border: none;
-    padding: 10px 20px;
+    padding: 12px 24px;
     font-size: 1rem;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
-    margin-top: 10px;
-    transition: background 0.3s;
-    font-weight: bold;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-button:hover {
-    background-color: #008c93;
+/* Verhindert, dass normale Links im Text wie Buttons aussehen */
+p a {
+    background-color: transparent;
+    padding: 0;
+    color: #00adb5;
+    text-transform: none;
+}
+
+button:hover, a[style*="inline-block"]:hover {
+    background-color: #00c7d1;
+    box-shadow: 0 0 15px rgba(0, 173, 181, 0.4); /* Neon Glow */
+    transform: scale(1.02);
+}
+
+/* Ordner-Ansicht (Directory List) Styling */
+ul {
+    list-style-type: none;
+}
+
+ul li {
+    margin-bottom: 10px;
+    padding: 12px 15px;
+    background-color: #202024;
+    border-radius: 8px;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+ul li:hover {
+    background-color: #2a2a2e;
+    border-left: 3px solid #00adb5;
+    transform: translateX(5px);
+}
+
+ul li a {
+    background: transparent;
+    color: #e1e1e6;
+    text-decoration: none;
+    font-weight: normal;
+    text-transform: none;
+    display: block;
+    padding: 0;
+}
+
+ul li a:hover {
+    color: #00adb5;
+    box-shadow: none;
+    transform: none;
 }
 
 #js-output {
-    margin-top: 15px;
+    margin-top: 20px;
     font-weight: bold;
     color: #00adb5;
+    font-size: 1.1rem;
 }
 
 /* Footer */
 footer {
     text-align: center;
-    margin-top: 30px;
-    padding: 20px;
+    margin-top: 50px;
+    padding: 30px;
     color: #616166;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    border-top: 1px solid #202024;
 }
