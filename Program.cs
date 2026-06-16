@@ -22,6 +22,8 @@ namespace OnyxServer
             string folder = folderparts[1];
             string[] fileparts = config[3].Split('=');
             string file = fileparts[1];
+            string[] notfoundparts = config[4].Split('=');
+            string notfound = notfoundparts[1];
 
             HttpListener listener = new HttpListener();
             listener.Prefixes.Add($"http://{ip}:{port}/");
@@ -41,6 +43,16 @@ namespace OnyxServer
 
                 // STICKY SITUATIONS ARE NEEDED STICK EVERTHING TOGEHTER
                 string fullpath = $"{mainFolder}{folder}{requestedfile}";
+                if (requestedfile.Contains(".."))
+                {
+                    string errorMessage = $"[{DateTime.Now}] {GetStatusLabel(403)} {fullpath}";
+                    Console.WriteLine(errorMessage);
+                    File.AppendAllText(mainFolder + "server.log", errorMessage + "\n");    
+                    
+                    response.StatusCode = 403; // HTTP Code for "forbidden"
+                    response.Close();
+                    continue;
+                }
 
 try 
                 {
@@ -82,7 +94,7 @@ try
                         output.Write(buffer, 0, buffer.Length);
                         output.Close();
                         
-                        string logMessage = $"[{DateTime.Now}] [OKAY] DELIVERED: {requestedfile}";
+                        string logMessage = $"[{DateTime.Now}] {GetStatusLabel(200)} DELIVERED: {requestedfile}";
                         Console.WriteLine(logMessage);
                         File.AppendAllText(mainFolder + "server.log", logMessage + "\n");   
                     }
@@ -90,11 +102,21 @@ try
 
                 catch (Exception ex)
                 {
-                    string errorMessage = $"[{DateTime.Now}] [ERROR 404] NOT FOUND: {fullpath}";
+                    string errorMessage = $"[{DateTime.Now}] {GetStatusLabel(404)} NOT FOUND: {fullpath}";
                     Console.WriteLine(errorMessage);
                     File.AppendAllText(mainFolder + "server.log", errorMessage + "\n");    
+                    string errorpath = $"{mainFolder}{folder}/{notfound}";
                     
+                    string extension = Path.GetExtension(notfound);
+                    response.ContentType = GetMimeType(extension);
+                    byte[] buffer = File.ReadAllBytes(errorpath);
+                    
+                    response.ContentLength64 = buffer.Length;
                     response.StatusCode = 404; // HTTP Code for "Not Found"
+                    System.IO.Stream output = response.OutputStream;
+                    output.Write(buffer, 0 , buffer.Length);
+                    output.Close();
+                    
                     response.Close();
                 }
             }
@@ -111,6 +133,19 @@ try
                 case ".jpg":  return "image/jpeg";
                 case ".jpeg": return "image/jpeg";
                 default:      return "application/octet-stream"; // STANDART NONE FILES
+            }
+        }
+
+        static string GetStatusLabel(int statusCode)
+        {
+            switch (statusCode)
+            {
+                case 200: return "[200] OK";
+                case 400: return "[400] Bad Request";
+                case 404: return "[404] Not Found";
+                case 403: return "[403] NO TOUCHY FORBIDDEN";
+                case 500: return "[500] OH OH THR SERVER IS NOT FEELING WELL INTERNAL SERVER ERROR";
+                default: return "[SERVER] I DONT EVEN KNOW WHAT THIS IS NOW";
             }
         }
     }
