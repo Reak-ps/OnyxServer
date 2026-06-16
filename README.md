@@ -7,12 +7,13 @@ A lightweight static file HTTP server built with C# and .NET — no dependencies
 ## Features
 
 - Serves static files with correct MIME types (HTML, CSS, JS, PNG, JPG, and more)
-- Directory listing — browse folder contents directly in the browser
+- Directory listing — browse folder contents directly in the browser with a custom template
 - Config-driven setup via a simple `.conf` file
-- Persistent logging to `server.log` with timestamps
+- Persistent logging to `server.log` with timestamps and readable status labels
 - Async request handling with `HttpListener`
 - Automatic fallback to a default file when hitting `/`
-- Clean console output for every request and error
+- Directory traversal protection — blocks `..` requests with a 403 response
+- Custom 404 and 403 error pages served from config
 
 ---
 
@@ -41,14 +42,22 @@ port=8080
 ip=localhost
 folder=public
 file=index.html
+notfound=404.html
+forbidden=403.html
+dirtemplate=dir.html
 ```
 
-| Key      | Description                                      | Example         |
-|----------|--------------------------------------------------|-----------------|
-| `port`   | Port to listen on                                | `8080`          |
-| `ip`     | IP address or hostname to bind to                | `localhost`     |
-| `folder` | Folder to serve files from                       | `public`        |
-| `file`   | Default file served when hitting `/`             | `index.html`    |
+| Key           | Description                                          | Example         |
+|---------------|------------------------------------------------------|-----------------|
+| `port`        | Port to listen on                                    | `8080`          |
+| `ip`          | IP address or hostname to bind to                    | `localhost`     |
+| `folder`      | Folder to serve files from                           | `public`        |
+| `file`        | Default file served when hitting `/`                 | `index.html`    |
+| `notfound`    | Custom 404 error page (inside `folder`)              | `404.html`      |
+| `forbidden`   | Custom 403 error page (inside `folder`)              | `403.html`      |
+| `dirtemplate` | HTML template for directory listings                 | `dir.html`      |
+
+The directory listing template uses `###FILE_LIST###` as a placeholder — OnyxServer replaces it with the actual file links at runtime.
 
 ---
 
@@ -59,7 +68,10 @@ OnyxServer/
 ├── ONYXSERVER.conf        ← config file
 ├── server.log             ← auto-generated request log
 ├── public/                ← your static files go here
-│   └── index.html
+│   ├── index.html
+│   ├── 404.html
+│   ├── 403.html
+│   └── dir.html
 └── OnyxServer/
     └── Program.cs
 ```
@@ -68,20 +80,19 @@ OnyxServer/
 
 ## Logging
 
-Every request and error is logged to `server.log` in the project root with a timestamp:
+Every request and error is logged to `server.log` with a timestamp and status label:
 
 ```
-[15.06.2026 21:04:12] [OKAY] DELIVERED: /index.html
-[15.06.2026 21:04:13] [OKAY] DELIVERED: /style.css
+[15.06.2026 21:04:12] [200] OK DELIVERED: /index.html
+[15.06.2026 21:04:13] [200] OK DELIVERED: /style.css
 [15.06.2026 21:04:14] [DIR] LISTED: /assets
-[15.06.2026 21:04:15] [ERROR 404] NOT FOUND: /../../../public/favicon.ico
+[15.06.2026 21:04:15] [403] NO TOUCHY FORBIDDEN: /../../../etc/passwd
+[15.06.2026 21:04:16] [404] Not Found NOT FOUND: /public/favicon.ico
 ```
 
 ---
 
 ## MIME Type Support
-
-OnyxServer automatically sets the correct `Content-Type` header based on file extension:
 
 | Extension      | MIME Type                        |
 |----------------|----------------------------------|
@@ -96,18 +107,20 @@ OnyxServer automatically sets the correct `Content-Type` header based on file ex
 
 ## Roadmap
 
-OnyxServer is actively being developed. Here's what's planned:
-
 ### 🔧 Core Improvements
-- [ ] **CLI Arguments** — pass port, folder, and other options directly via command line instead of relying solely on the `.conf` file
-- [ ] **Multi-threading / performance** — handle concurrent requests without blocking using proper async pipelines
+- [ ] **Modular folder contents** — cleaner, more flexible directory listing system
+- [ ] **Error pages in separate folder** — move 404/403 pages out of the public directory
+- [ ] **Dynamic MIME types** — extend and improve MIME type detection
+- [ ] **Professional logging** — structured, leveled log output
+- [ ] **Query parameter parsing** — read and handle URL query strings
+- [ ] **System files vs. public files** — separate internal server files from served content
 
-### 🔒 Security
-- [ ] **HTTPS / SSL support** — serve over TLS with certificate configuration
-- [ ] **Basic Auth** — protect routes or the entire server with username/password authentication
+### 🌐 API
+- [ ] **API endpoints & JSON** — serve JSON responses from defined endpoints
 
-### 🌐 Hosting
-- [ ] **Virtual Hosts** — serve multiple sites from one server instance, routing by domain or subdomain
+### 🔒 Security & Platform
+- [ ] **SSL / HTTPS** — serve over TLS with certificate configuration
+- [ ] **Linux support** — cross-platform compatibility
 
 ---
 
