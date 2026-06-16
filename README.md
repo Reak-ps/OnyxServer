@@ -1,4 +1,16 @@
-# 🖤 OnyxServer
+![OnyxServer Banner](banner.png)
+
+<div align="center">
+
+![.NET](https://img.shields.io/badge/.NET-6.0+-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=csharp&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-black?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-0.1.1-grey?style=for-the-badge)
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/yUvqZxzUKF)
+
+</div>
+
+---
 
 A lightweight static file HTTP server built with C# and .NET — no dependencies, no bloat. Just drop in a config file and serve.
 
@@ -14,6 +26,7 @@ A lightweight static file HTTP server built with C# and .NET — no dependencies
 - Automatic fallback to a default file when hitting `/`
 - Directory traversal protection — blocks `..` requests with a 403 response
 - Custom 404 and 403 error pages served from config
+- Separate `Public/` and `System/` directories — internal templates are protected from direct access
 
 ---
 
@@ -53,9 +66,9 @@ dirtemplate=dir.html
 | `ip`          | IP address or hostname to bind to                    | `localhost`     |
 | `folder`      | Folder to serve files from                           | `public`        |
 | `file`        | Default file served when hitting `/`                 | `index.html`    |
-| `notfound`    | Custom 404 error page (inside `folder`)              | `404.html`      |
-| `forbidden`   | Custom 403 error page (inside `folder`)              | `403.html`      |
-| `dirtemplate` | HTML template for directory listings                 | `dir.html`      |
+| `notfound`    | Custom 404 error page (inside `System/`)             | `404.html`      |
+| `forbidden`   | Custom 403 error page (inside `System/`)             | `403.html`      |
+| `dirtemplate` | HTML template for directory listings (inside `System/`) | `dir.html`   |
 
 The directory listing template uses `###FILE_LIST###` as a placeholder — OnyxServer replaces it with the actual file links at runtime.
 
@@ -67,8 +80,9 @@ The directory listing template uses `###FILE_LIST###` as a placeholder — OnyxS
 OnyxServer/
 ├── ONYXSERVER.conf        ← config file
 ├── server.log             ← auto-generated request log
-├── public/                ← your static files go here
-│   ├── index.html
+├── Public/                ← your static files go here
+│   └── index.html
+├── System/                ← internal templates (not publicly accessible)
 │   ├── 404.html
 │   ├── 403.html
 │   └── dir.html
@@ -126,7 +140,9 @@ Every request and error is logged to `server.log` with a timestamp and status la
 
 ## Built With
 
-- C# / .NET
+![C#](https://img.shields.io/badge/C%23-239120?style=flat-square&logo=csharp&logoColor=white)
+![.NET](https://img.shields.io/badge/.NET-512BD4?style=flat-square&logo=dotnet&logoColor=white)
+
 - `System.Net.HttpListener` — built-in .NET HTTP server
 - No external dependencies
 
