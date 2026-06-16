@@ -14,22 +14,22 @@ namespace OnyxServer
 
             // LOAD CONFIG FROM THE MAIN FOLDER
             string[] config = File.ReadAllLines(mainFolder + "ONYXSERVER.conf");
-            string[] portparts = config[0].Split("=");
+            string[] portparts = config[0].Split('=');
             string port = portparts[1];
-            string[] ipparts = config[1].Split("=");
+            string[] ipparts = config[1].Split('=');
             string ip = ipparts[1];
-            string[] folderparts = config[2].Split('=');
-            string folder = folderparts[1];
             string[] fileparts = config[3].Split('=');
             string file = fileparts[1];
             string[] notfoundparts = config[4].Split('=');
             string notfound = notfoundparts[1];
-            string[] forbidden =  config[5].Split('=');
+            string[] forbidden = config[5].Split('=');
             string forb = forbidden[1];
             string[] dircontents = config[6].Split('=');
             string dir = dircontents[1];
             
-
+            string publicRoot = $"{mainFolder}Public/";
+            string systemRoot = $"{mainFolder}System/";
+            
             HttpListener listener = new HttpListener();
             listener.Prefixes.Add($"http://{ip}:{port}/");
             listener.Start();
@@ -47,13 +47,13 @@ namespace OnyxServer
                 }
 
                 // This is for safety and putting everything togheter
-                string fullpath = $"{mainFolder}{folder}{requestedfile}";
+                string fullpath = $"{publicRoot}{requestedfile}";
                 if (requestedfile.Contains(".."))
                 {
                     string errorMessage = $"[{DateTime.Now}] {GetStatusLabel(403)} {fullpath}";
                     Console.WriteLine(errorMessage);
                     File.AppendAllText(mainFolder + "server.log", errorMessage + "\n");    
-                    string forbiddenerror = $"{mainFolder}{folder}/{forb}";
+                    string forbiddenerror = $"{systemRoot}{forb}";
                     
                     string extension = Path.GetExtension(forb);
                     response.ContentType = GetMimeType(extension);
@@ -85,7 +85,7 @@ try
                         }
     
                         // new magical things happen here 
-                        string templatePath = $"{mainFolder}{folder}/{dir}";
+                        string templatePath = $"{systemRoot}{dir}";
                         string html = File.ReadAllText(templatePath);
                         html = html.Replace("###FILE_LIST###", listItems);
     
@@ -125,7 +125,7 @@ try
                     string errorMessage = $"[{DateTime.Now}] {GetStatusLabel(404)} NOT FOUND: {fullpath}";
                     Console.WriteLine(errorMessage);
                     File.AppendAllText(mainFolder + "server.log", errorMessage + "\n");    
-                    string errorpath = $"{mainFolder}{folder}/{notfound}";
+                    string errorpath = $"{systemRoot}{notfound}";
                     
                     string extension = Path.GetExtension(notfound);
                     response.ContentType = GetMimeType(extension);
