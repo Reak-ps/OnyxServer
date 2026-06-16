@@ -122,12 +122,12 @@ Every request and error is logged to `server.log` with a timestamp and status la
 ## Roadmap
 
 ### 🔧 Core Improvements
-- [ ] **Modular folder contents** — cleaner, more flexible directory listing system
-- [ ] **Error pages in separate folder** — move 404/403 pages out of the public directory
+- [✅] **Modular folder contents** — cleaner, more flexible directory listing system
+- [✅] **Error pages in separate folder** — move 404/403 pages out of the public directory
 - [ ] **Dynamic MIME types** — extend and improve MIME type detection
 - [ ] **Professional logging** — structured, leveled log output
 - [ ] **Query parameter parsing** — read and handle URL query strings
-- [ ] **System files vs. public files** — separate internal server files from served content
+- [✅] **System files vs. public files** — separate internal server files from served content
 
 ### 🌐 API
 - [ ] **API endpoints & JSON** — serve JSON responses from defined endpoints
