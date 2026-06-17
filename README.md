@@ -5,7 +5,7 @@
 ![.NET](https://img.shields.io/badge/.NET-6.0+-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 ![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=csharp&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-black?style=for-the-badge)
-![Version](https://img.shields.io/badge/version-0.2.0-BETA-grey?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-0.2.0-grey?style=for-the-badge)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/yUvqZxzUKF)
 
 </div>
