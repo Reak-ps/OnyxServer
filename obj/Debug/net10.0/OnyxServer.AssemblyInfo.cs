@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OnyxServer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3c8f167ce4f265935ed4edc1cc95963d01fe75c9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8bf7776a2f91500c02019022a8bb2afe86805131")]
 [assembly: System.Reflection.AssemblyProductAttribute("OnyxServer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OnyxServer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
