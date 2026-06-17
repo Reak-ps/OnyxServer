@@ -1,5 +1,3 @@
-
-```
 ![OnyxServer Banner](banner.png)
 
 <div align="center">
