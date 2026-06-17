@@ -203,7 +203,7 @@ Example output:
 * [ ] Access control lists (ACL)
 * [ ] Configuration hot reload
 * [ ] WebSocket proxy support
-* [ ] Compression (Gzip/Brotli)
+* [] Compression (Gzip/Brotli)
 
 ---
 
@@ -212,8 +212,9 @@ Example output:
 * System.Net.HttpListener
 * System.Net.Http.HttpClient
 * .NET 6+
+* an extreme amount of patience
 
-**No external NuGet packages. No unnecessary dependencies.**
+**No external NuGet packages. No unnecessary dependencies needed.**
 
 ---
 
