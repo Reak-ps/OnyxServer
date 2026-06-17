@@ -7,7 +7,7 @@
 ![License](https://img.shields.io/badge/license-MIT-black?style=for-the-badge)
 ![Version](https://img.shields.io/badge/version-0.2.0-grey?style=for-the-badge)
 
-[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge\&logo=discord\&logoColor=white)](https://discord.gg/yUvqZxzUKF)
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge\&logo=discord\&logoColor=white)](https://discord.gg/bPDJPEBbUs)
 
 </div>
 
