@@ -49,7 +49,7 @@ Perfect for running OnyxServer on a VPS or home server.
 ### Option B: For Developers (Build from Source)
 If you want to modify the C# code:
 ```bash
-git clone [https://github.com/your-username/OnyxServer.git](https://github.com/your-username/OnyxServer.git)
+git clone [https://github.com/Reak-ps/OnyxServer.git](https://github.com/Reak-ps/OnyxServer.git)
 cd OnyxServer
 dotnet run
 
