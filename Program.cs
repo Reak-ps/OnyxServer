@@ -34,7 +34,29 @@ namespace OnyxServer
             listener.Prefixes.Add($"http://{ip}:{port}/");
             listener.Start();
             Console.WriteLine($"Listening on port {port}");
+            Dictionary<string, Func<string>> apiRoutes = new Dictionary<string, Func<string>>();
             
+            apiRoutes.Add("/api/stats", () => 
+            {
+                return $$"""
+                         {
+                           "status": "online",
+                           "version": "0.2.0,
+                           "time": "{{DateTime.Now}}"
+                         }
+                         """;
+            });
+            
+            apiRoutes.Add("/api/system", () => 
+            {
+                return $$"""
+                         {
+                           "os": "{{Environment.OSVersion}}",
+                           "cpu_cores": {{Environment.ProcessorCount}},
+                           "machine_name": "{{Environment.MachineName}}"
+                         }
+                         """;
+            });
             while (true)
             {
                 HttpListenerContext context = await listener.GetContextAsync();
@@ -67,6 +89,40 @@ namespace OnyxServer
                     output.Close();
                     
                     response.Close();
+                    continue;
+                }
+
+                if (apiRoutes.ContainsKey(requestedfile))
+                {
+                    string jsonResponse = apiRoutes[requestedfile]();
+                    
+                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(jsonResponse);
+                    response.ContentType = "application/json";
+                    response.ContentLength64 = buffer.Length;
+                    
+                    System.IO.Stream output = response.OutputStream;
+                    output.Write(buffer, 0, buffer.Length);
+                    output.Close();
+
+                    continue;
+                }
+                else if (requestedfile.StartsWith("/api/"))
+                {
+                    string errorJson = """
+                                       {
+                                         "error": "Not Found",
+                                         "message": "Diese API-Route existiert nicht."
+                                       }
+                                       """;
+                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(errorJson);
+                    response.ContentType = "application/json";
+                    response.StatusCode = 404;
+                    response.ContentLength64 = buffer.Length;
+                    
+                    System.IO.Stream output = response.OutputStream;
+                    output.Write(buffer, 0, buffer.Length);
+                    output.Close();
+
                     continue;
                 }
 
@@ -142,18 +198,34 @@ try
             }
         }
         
-        static string GetMimeType(string fileEnding)
+        private static readonly Dictionary<string, string> MimeTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            switch (fileEnding.ToLower())
+            { ".html", "text/html; charset=utf-8" },
+            { ".htm", "text/html; charset=utf-8" },
+            { ".css", "text/css" },
+            { ".js", "application/javascript" },
+            { ".json", "application/json" },
+            { ".png", "image/png" },
+            { ".jpg", "image/jpeg" },
+            { ".jpeg", "image/jpeg" },
+            { ".gif", "image/gif" },
+            { ".svg", "image/svg+xml" },
+            { ".ico", "image/x-icon" },
+            { ".txt", "text/plain; charset=utf-8" },
+            { ".mp4", "video/mp4" },
+            { ".pdf", "application/pdf" },
+            { ".zip", "application/zip" }
+        };
+
+        public static string GetMimeType(string extension)
+        {
+            if (MimeTypes.TryGetValue(extension, out string mimeType))
             {
-                case ".html": return "text/html; charset=utf-8";
-                case ".css":  return "text/css";
-                case ".js":   return "application/javascript";
-                case ".png":  return "image/png";
-                case ".jpg":  return "image/jpeg";
-                case ".jpeg": return "image/jpeg";
-                default:      return "application/octet-stream"; // STANDART NONE FILES
+                return mimeType;
             }
+    
+            // Standard for not known types
+            return "application/octet-stream"; 
         }
 
         static string GetStatusLabel(int statusCode)
@@ -163,9 +235,10 @@ try
                 case 200: return "[200] OK";
                 case 400: return "[400] Bad Request";
                 case 404: return "[404] Not Found";
-                case 403: return "[403] NO TOUCHY FORBIDDEN";
+                case 403: return "[403] Forbidden";
                 case 500: return "[500] OH OH THE SERVER IS NOT FEELING WELL (INTERNAL SERVER ERROR)";
                 default: return "[SERVER] I DONT EVEN KNOW WHAT THIS IS NOW";
+                
             }
         }
     }
