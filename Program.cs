@@ -42,6 +42,15 @@ namespace OnyxServer
     class OnyxServer
     {
         private static readonly HttpClient httpClient = new HttpClient();
+        
+        private static string publicRoot;
+        private static string systemRoot;
+        private static string file;
+        private static string notfound;
+        private static string forb;
+        private static string dir;
+        private static Dictionary<string, string> proxyRoutes;
+        private static Dictionary<string, Func<NameValueCollection, string>> apiRoutes;
 
         static async Task Main(string[] args)
         {
@@ -52,10 +61,10 @@ namespace OnyxServer
 
             string port = GetConfigValue(config, "PORT", "8080");
             string ip = GetConfigValue(config, "IP", "127.0.0.1");
-            string file = GetConfigValue(config, "DEFAULT_FILE", "index.html");
-            string notfound = GetConfigValue(config, "NOT_FOUND", "404.html");
-            string forb = GetConfigValue(config, "FORBIDDEN", "403.html");
-            string dir = GetConfigValue(config, "DIR_TEMPLATE", "dir_template.html");
+            file = GetConfigValue(config, "DEFAULT_FILE", "index.html");
+            notfound = GetConfigValue(config, "NOT_FOUND", "404.html");
+            forb = GetConfigValue(config, "FORBIDDEN", "403.html");
+            dir = GetConfigValue(config, "DIR_TEMPLATE", "dir_template.html");
 
             Logger.LogFilePath = mainFolder + GetConfigValue(config, "LOG_FILE", "server.log");
             Logger.LogToConsole = GetConfigValue(config, "LOG_TO_CONSOLE", "true")
@@ -71,9 +80,9 @@ namespace OnyxServer
             string publicFolderConfig = GetConfigValue(config, "PUBLIC_FOLDER", "Public/");
             string systemFolderConfig = GetConfigValue(config, "SYSTEM_FOLDER", "System/");
 
-            string publicRoot = NormalizeFolder(
+            publicRoot = NormalizeFolder(
                 Path.IsPathRooted(publicFolderConfig) ? publicFolderConfig : $"{mainFolder}{publicFolderConfig}");
-            string systemRoot = NormalizeFolder(
+            systemRoot = NormalizeFolder(
                 Path.IsPathRooted(systemFolderConfig) ? systemFolderConfig : $"{mainFolder}{systemFolderConfig}");
 
             if (!Directory.Exists(publicRoot))
@@ -87,7 +96,7 @@ namespace OnyxServer
                 Environment.Exit(1);
             }
 
-            Dictionary<string, string> proxyRoutes = new Dictionary<string, string>();
+            proxyRoutes = new Dictionary<string, string>();
             foreach (KeyValuePair<string, string> kvp in config)
             {
                 if (kvp.Key.StartsWith("PROXY:", StringComparison.OrdinalIgnoreCase))
@@ -123,7 +132,6 @@ namespace OnyxServer
                 return;
             }
 
-            // Clean shutdown on Ctrl+C or `systemd stop`
             Console.CancelKeyPress += (sender, e) =>
             {
                 Logger.Info("Server is shutting down (Strg+C)...");
@@ -139,16 +147,8 @@ namespace OnyxServer
             };
 
             Logger.Info($"Server started. HTTP Port: {port}" + (sslEnabled ? $", HTTPS Port: {httpsPort}" : ""));
-            if (proxyRoutes.Count > 0)
-            {
-                foreach (var p in proxyRoutes)
-                {
-                    Logger.Info($"Reverse proxy active: {p.Key} -> {p.Value}");
-                }
-            }
-
-            Dictionary<string, Func<NameValueCollection, string>> apiRoutes =
-                new Dictionary<string, Func<NameValueCollection, string>>();
+            
+            apiRoutes = new Dictionary<string, Func<NameValueCollection, string>>();
 
             apiRoutes.Add("/api/stats", (query) =>
             {
@@ -181,10 +181,20 @@ namespace OnyxServer
                          """;
             });
 
+            // new asynchron 
             while (true)
             {
                 HttpListenerContext context = await listener.GetContextAsync();
+                
+                _ = Task.Run(() => HandleClientAsync(context));
+            }
+        } // end of main methode
 
+        // new thing for multi threading
+        static async Task HandleClientAsync(HttpListenerContext context)
+        {
+            try
+            {
                 Uri requestUrl = context.Request.Url;
                 string requestedfile = requestUrl.AbsolutePath;
                 NameValueCollection queryParams = HttpUtility.ParseQueryString(requestUrl.Query);
@@ -209,12 +219,11 @@ namespace OnyxServer
                     response.ContentLength64 = buffer.Length;
                     response.StatusCode = 403;
 
-                    System.IO.Stream output = response.OutputStream;
-                    output.Write(buffer, 0, buffer.Length);
-                    output.Close();
-
-                    response.Close();
-                    continue;
+                    using (System.IO.Stream output = response.OutputStream)
+                    {
+                        await output.WriteAsync(buffer, 0, buffer.Length);
+                    }
+                    return;
                 }
 
                 if (apiRoutes.ContainsKey(requestedfile))
@@ -225,12 +234,12 @@ namespace OnyxServer
                     response.ContentType = "application/json";
                     response.ContentLength64 = buffer.Length;
 
-                    System.IO.Stream output = response.OutputStream;
-                    output.Write(buffer, 0, buffer.Length);
-                    output.Close();
-
+                    using (System.IO.Stream output = response.OutputStream)
+                    {
+                        await output.WriteAsync(buffer, 0, buffer.Length);
+                    }
                     Logger.Debug($"API route served: {requestedfile}");
-                    continue;
+                    return;
                 }
                 else if (requestedfile.StartsWith("/api/"))
                 {
@@ -245,12 +254,12 @@ namespace OnyxServer
                     response.StatusCode = 404;
                     response.ContentLength64 = buffer.Length;
 
-                    System.IO.Stream output = response.OutputStream;
-                    output.Write(buffer, 0, buffer.Length);
-                    output.Close();
-
+                    using (System.IO.Stream output = response.OutputStream)
+                    {
+                        await output.WriteAsync(buffer, 0, buffer.Length);
+                    }
                     Logger.Warn($"Unknown API route requested: {requestedfile}");
-                    continue;
+                    return;
                 }
 
                 string matchedProxyPath = null;
@@ -270,68 +279,68 @@ namespace OnyxServer
                     string targetUrl = $"{targetBase}{remainingPath}{requestUrl.Query}";
 
                     await HandleProxyRequest(context, targetUrl);
-                    continue;
+                    return;
                 }
 
-                try
+                if (Directory.Exists(fullpath))
                 {
-                    if (Directory.Exists(fullpath))
+                    string[] files = Directory.GetFiles(fullpath);
+                    string listItems = "";
+
+                    foreach (string singleFile in files)
                     {
-                        string[] files = Directory.GetFiles(fullpath);
-                        string listItems = "";
-
-                        foreach (string singleFile in files)
-                        {
-                            string name = Path.GetFileName(singleFile);
-                            listItems += $"<li><a href='{requestedfile}/{name}'>{name}</a></li>\n";
-                        }
-
-                        string templatePath = $"{systemRoot}{dir}";
-                        string html = File.ReadAllText(templatePath);
-                        html = html.Replace("###FILE_LIST###", listItems);
-
-                        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(html);
-
-                        response.ContentType = "text/html; charset=utf-8";
-                        response.ContentLength64 = buffer.Length;
-
-                        System.IO.Stream output = response.OutputStream;
-                        output.Write(buffer, 0, buffer.Length);
-                        output.Close();
-
-                        Logger.Info($"[DIR] LISTED: {requestedfile}");
+                        string name = Path.GetFileName(singleFile);
+                        listItems += $"<li><a href='{requestedfile}/{name}'>{name}</a></li>\n";
                     }
-                    else
+
+                    string templatePath = $"{systemRoot}{dir}";
+                    string html = File.ReadAllText(templatePath);
+                    html = html.Replace("###FILE_LIST###", listItems);
+
+                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(html);
+
+                    response.ContentType = "text/html; charset=utf-8";
+                    response.ContentLength64 = buffer.Length;
+
+                    using (System.IO.Stream output = response.OutputStream)
                     {
-                        string extension = Path.GetExtension(fullpath);
-                        response.ContentType = GetMimeType(extension);
-                        byte[] buffer = File.ReadAllBytes(fullpath);
-
-                        response.ContentLength64 = buffer.Length;
-                        System.IO.Stream output = response.OutputStream;
-                        output.Write(buffer, 0, buffer.Length);
-                        output.Close();
-
-                        Logger.Info($"{GetStatusLabel(200)} DELIVERED: {requestedfile}");
+                        await output.WriteAsync(buffer, 0, buffer.Length);
                     }
+                    Logger.Info($"[DIR] LISTED: {requestedfile}");
                 }
-                catch (Exception ex)
+                else
                 {
-                    Logger.Error($"{GetStatusLabel(404)} NOT FOUND: {fullpath} ({ex.Message})");
-                    string errorpath = $"{systemRoot}{notfound}";
-
-                    string extension = Path.GetExtension(notfound);
+                    string extension = Path.GetExtension(fullpath);
                     response.ContentType = GetMimeType(extension);
-                    byte[] buffer = File.ReadAllBytes(errorpath);
+                    byte[] buffer = File.ReadAllBytes(fullpath);
 
                     response.ContentLength64 = buffer.Length;
-                    response.StatusCode = 404;
-                    System.IO.Stream output = response.OutputStream;
-                    output.Write(buffer, 0, buffer.Length);
-                    output.Close();
-
-                    response.Close();
+                    using (System.IO.Stream output = response.OutputStream)
+                    {
+                        await output.WriteAsync(buffer, 0, buffer.Length);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"{GetStatusLabel(404)} NOT FOUND: {context.Request.Url.AbsolutePath} ({ex.Message})");
+                string errorpath = $"{systemRoot}{notfound}";
+
+                string extension = Path.GetExtension(notfound);
+                context.Response.ContentType = GetMimeType(extension);
+                byte[] buffer = File.ReadAllBytes(errorpath);
+
+                context.Response.ContentLength64 = buffer.Length;
+                context.Response.StatusCode = 404;
+                using (System.IO.Stream output = context.Response.OutputStream)
+                {
+                    await output.WriteAsync(buffer, 0, buffer.Length);
+                }
+            }
+            finally
+            {
+                // close the connection doesn't matter what happens
+                context.Response.Close();
             }
         }
 
@@ -393,11 +402,8 @@ namespace OnyxServer
                 using System.IO.Stream output = response.OutputStream;
                 await output.WriteAsync(errorBytes, 0, errorBytes.Length);
             }
-
-            response.Close();
         }
 
-        // Reliably locates the main folder
         static string ResolveMainFolder()
         {
             string envOverride = Environment.GetEnvironmentVariable("ONYXSERVER_HOME");
@@ -405,14 +411,18 @@ namespace OnyxServer
             {
                 return NormalizeFolder(envOverride);
             }
-
-            string baseDir = AppContext.BaseDirectory;
-            if (File.Exists(Path.Combine(baseDir, "ONYXSERVER.conf")))
+            string baseDir = Path.GetDirectoryName(Environment.ProcessPath);
+            
+            if (string.IsNullOrEmpty(baseDir)) 
             {
-                return NormalizeFolder(baseDir);
+                baseDir = AppContext.BaseDirectory;
             }
-
-            return "../../../";
+            if (baseDir.Contains("bin") && (baseDir.Contains("Debug") || baseDir.Contains("Release")))
+            {
+                return NormalizeFolder(Path.GetFullPath(Path.Combine(baseDir, "../../../")));
+            }
+            
+            return NormalizeFolder(baseDir);
         }
 
         static void EnsureConfigExists(string path)
@@ -426,14 +436,10 @@ namespace OnyxServer
             # ====================================================
             
             # IP and port the server listens on
-            # 127.0.0.1 = accessible only locally
-            # 0.0.0.0   = accessible from anywhere on the network
-            # You can also enter a custom domain here (e.g., meine-domain.de)
             IP=127.0.0.1
             PORT=8080
 
             # Folder served as a website
-            # Can be relative (e.g., Public/) or a full path (e.g., /var/www/my-site/)
             PUBLIC_FOLDER=Public/
 
             # Folder with error pages & templates
@@ -448,19 +454,13 @@ namespace OnyxServer
             DIR_TEMPLATE=dir_template.html
 
             # Logging
-            # LOG_LEVEL can be: DEBUG, INFO, WARN, ERROR
             LOG_LEVEL=INFO
             LOG_FILE=server.log
             LOG_TO_CONSOLE=true
 
-            # SSL/HTTPS (optional; requires a dedicated certificate bound via netsh)
+            # SSL/HTTPS
             SSL_ENABLED=false
             HTTPS_PORT=8443
-
-            # Reverse Proxy: forwards requests to other locally running servers
-            # Format: PROXY:/your-path=http://target-server:port
-            # Example for integrating Gitea, for instance (remove the hash to activate):
-            # PROXY:/gitea=http://localhost:3000
             """;
 
             File.WriteAllText(path, defaultConfig);
@@ -504,20 +504,13 @@ namespace OnyxServer
         private static readonly Dictionary<string, string> MimeTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { ".html", "text/html; charset=utf-8" },
-            { ".htm", "text/html; charset=utf-8" },
             { ".css", "text/css" },
             { ".js", "application/javascript" },
             { ".json", "application/json" },
             { ".png", "image/png" },
             { ".jpg", "image/jpeg" },
             { ".jpeg", "image/jpeg" },
-            { ".gif", "image/gif" },
-            { ".svg", "image/svg+xml" },
-            { ".ico", "image/x-icon" },
-            { ".txt", "text/plain; charset=utf-8" },
-            { ".mp4", "video/mp4" },
-            { ".pdf", "application/pdf" },
-            { ".zip", "application/zip" }
+            { ".txt", "text/plain; charset=utf-8" }
         };
 
         public static string GetMimeType(string extension)
@@ -526,7 +519,6 @@ namespace OnyxServer
             {
                 return mimeType;
             }
-
             return "application/octet-stream";
         }
 
@@ -535,11 +527,9 @@ namespace OnyxServer
             switch (statusCode)
             {
                 case 200: return "[200] OK";
-                case 400: return "[400] Bad Request";
-                case 404: return "[404] Not Found";
                 case 403: return "[403] Forbidden";
-                case 500: return "[500] OH OH THE SERVER IS NOT FEELING WELL (INTERNAL SERVER ERROR)";
-                default: return "[SERVER] I DONT EVEN KNOW WHAT THIS IS NOW";
+                case 404: return "[404] Not Found";
+                default: return "[SERVER] HTTP STATUS";
             }
         }
     }
