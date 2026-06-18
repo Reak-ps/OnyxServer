@@ -1,153 +1,225 @@
-![OnyxServer Banner](banner.png)
+# ![OnyxServer Banner](banner.png)
 
 <div align="center">
 
-![.NET](https://img.shields.io/badge/.NET-6.0+-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
-![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=csharp&logoColor=white)
+![.NET](https://img.shields.io/badge/.NET-6.0+-512BD4?style=for-the-badge\&logo=dotnet\&logoColor=white)
+![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge\&logo=csharp\&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-black?style=for-the-badge)
-![Version](https://img.shields.io/badge/version-0.1.1-grey?style=for-the-badge)
-[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/yUvqZxzUKF)
+![Version](https://img.shields.io/badge/version-0.2.0-grey?style=for-the-badge)
+
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge\&logo=discord\&logoColor=white)](https://discord.gg/bPDJPEBbUs)
 
 </div>
 
 ---
 
-A lightweight static file HTTP server built with C# and .NET — no dependencies, no bloat. Just drop in a config file and serve.
+A lightweight, high-performance static file server and reverse proxy built with **C#** and **.NET**.
+
+Designed as a simple, zero-dependency alternative to Nginx for personal projects, self-hosted services, and lightweight deployments.
 
 ---
 
-## Features
+## ✨ Features
 
-- Serves static files with correct MIME types (HTML, CSS, JS, PNG, JPG, and more)
-- Directory listing — browse folder contents directly in the browser with a custom template
-- Config-driven setup via a simple `.conf` file
-- Persistent logging to `server.log` with timestamps and readable status labels
-- Async request handling with `HttpListener`
-- Automatic fallback to a default file when hitting `/`
-- Directory traversal protection — blocks `..` requests with a 403 response
-- Custom 404 and 403 error pages served from config
-- Separate `Public/` and `System/` directories — internal templates are protected from direct access
+* 🚀 **Self-Contained Deployment** – Runs on Linux and Windows without requiring a .NET installation.
+* 🔄 **Built-in Reverse Proxy** – Forward requests to local applications such as Gitea, Node.js apps, APIs, and more.
+* ⚙️ **Automatic Configuration** – Missing configuration files are generated automatically on startup.
+* 📡 **API Routing** – Serve dynamic JSON responses and access query parameters easily.
+* 📊 **Structured Logging** – Log levels (`DEBUG`, `INFO`, `WARN`, `ERROR`) with optional file output.
+* 📁 **Directory Listing** – Browse folders through a customizable directory template.
+* 🛡️ **Security Protection** – Built-in protection against directory traversal attacks.
+* 🌍 **Dynamic MIME Detection** – Correctly serves common file types automatically.
+* 🔒 **HTTPS Support** – Optional SSL/TLS support for secure connections.
+* 🪶 **Lightweight** – No external NuGet packages required.
 
 ---
 
-## Getting Started
+# 🚀 Getting Started
 
-### Prerequisites
+## Option A — Standalone Linux Release
 
-- [.NET SDK](https://dotnet.microsoft.com/download) (6.0 or later recommended)
+Perfect for VPS deployments, homelabs, and lightweight servers.
 
-### Clone & Run
+### 1. Download the latest release
+
+Download `OnyxServer-linux-x64.zip` from the GitHub Releases page.
+
+### 2. Extract the archive
 
 ```bash
-git clone https://github.com/your-username/OnyxServer.git
+unzip OnyxServer-linux-x64.zip
+cd OnyxServer
+```
+
+### 3. Run the server
+
+```bash
+chmod +x OnyxServer
+./OnyxServer
+```
+
+On first startup, OnyxServer automatically generates:
+
+```text
+ONYXSERVER.conf
+server.log
+```
+
+---
+
+## Option B — Build From Source
+
+```bash
+git clone https://github.com/Reak-ps/OnyxServer.git
 cd OnyxServer
 dotnet run
 ```
 
 ---
 
-## Configuration
+# ⚙️ Configuration
 
-OnyxServer reads its config from `ONYXSERVER.conf` in the **project root**.
+All settings are stored inside:
 
-```
-port=8080
-ip=localhost
-folder=public
-file=index.html
-notfound=404.html
-forbidden=403.html
-dirtemplate=dir.html
+```text
+ONYXSERVER.conf
 ```
 
-| Key           | Description                                          | Example         |
-|---------------|------------------------------------------------------|-----------------|
-| `port`        | Port to listen on                                    | `8080`          |
-| `ip`          | IP address or hostname to bind to                    | `localhost`     |
-| `folder`      | Folder to serve files from                           | `public`        |
-| `file`        | Default file served when hitting `/`                 | `index.html`    |
-| `notfound`    | Custom 404 error page (inside `System/`)             | `404.html`      |
-| `forbidden`   | Custom 403 error page (inside `System/`)             | `403.html`      |
-| `dirtemplate` | HTML template for directory listings (inside `System/`) | `dir.html`   |
+Example configuration:
 
-The directory listing template uses `###FILE_LIST###` as a placeholder — OnyxServer replaces it with the actual file links at runtime.
+```properties
+IP=0.0.0.0
+PORT=8080
+
+PUBLIC_FOLDER=Public/
+SYSTEM_FOLDER=System/
+
+DEFAULT_FILE=index.html
+
+NOT_FOUND=404.html
+FORBIDDEN=403.html
+DIR_TEMPLATE=dir_template.html
+
+# Logging
+LOG_LEVEL=INFO
+LOG_FILE=server.log
+LOG_TO_CONSOLE=true
+
+# SSL
+SSL_ENABLED=false
+HTTPS_PORT=8443
+
+# Reverse Proxy
+# PROXY:/git=http://localhost:3000
+```
+
+If the configuration file is missing, it will be recreated automatically with default values.
 
 ---
 
-## Project Structure
+# 🔄 Reverse Proxy
 
+Expose self-hosted applications behind a single entry point.
+
+Example:
+
+```properties
+PROXY:/git=http://localhost:3000
 ```
+
+Requests to:
+
+```text
+http://your-server:8080/git
+```
+
+are forwarded to:
+
+```text
+http://localhost:3000
+```
+
+This works great for:
+
+* Gitea
+* Node.js applications
+* ASP.NET APIs
+* Internal dashboards
+* Self-hosted services
+
+---
+
+# 📁 Project Structure
+
+```text
 OnyxServer/
-├── ONYXSERVER.conf        ← config file
-├── server.log             ← auto-generated request log
-├── Public/                ← your static files go here
+├── OnyxServer
+├── ONYXSERVER.conf
+├── server.log
+│
+├── Public/
 │   └── index.html
-├── System/                ← internal templates (not publicly accessible)
-│   ├── 404.html
-│   ├── 403.html
-│   └── dir.html
-└── OnyxServer/
-    └── Program.cs
+│
+└── System/
+    ├── 404.html
+    ├── 403.html
+    └── dir_template.html
 ```
 
 ---
 
-## Logging
+# 📊 Logging
 
-Every request and error is logged to `server.log` with a timestamp and status label:
+Example output:
 
+```text
+[2026-06-16 21:04:12] [INFO] Server started. HTTP Port: 8080
+[2026-06-16 21:04:12] [INFO] Reverse proxy active: /git -> http://localhost:3000
+[2026-06-16 21:04:15] [INFO] [200] OK DELIVERED: /index.html
+[2026-06-16 21:04:16] [WARN] [403] Forbidden /../../../etc/passwd
+[2026-06-16 21:04:17] [INFO] [PROXY] GET /git/ -> http://localhost:3000/git/ (200)
 ```
-[15.06.2026 21:04:12] [200] OK DELIVERED: /index.html
-[15.06.2026 21:04:13] [200] OK DELIVERED: /style.css
-[15.06.2026 21:04:14] [DIR] LISTED: /assets
-[15.06.2026 21:04:15] [403] NO TOUCHY FORBIDDEN: /../../../etc/passwd
-[15.06.2026 21:04:16] [404] Not Found NOT FOUND: /public/favicon.ico
-```
 
 ---
 
-## MIME Type Support
+# 🗺️ Roadmap
 
-| Extension      | MIME Type                        |
-|----------------|----------------------------------|
-| `.html`        | `text/html; charset=utf-8`       |
-| `.css`         | `text/css`                       |
-| `.js`          | `application/javascript`         |
-| `.png`         | `image/png`                      |
-| `.jpg / .jpeg` | `image/jpeg`                     |
-| other          | `application/octet-stream`       |
+## Completed
 
----
+* [x] Modular directory listing
+* [x] Dedicated system folder for templates
+* [x] Dynamic MIME type handling
+* [x] Structured logging
+* [x] Query parameter parsing
+* [x] API endpoints with JSON responses
+* [x] Reverse proxy support
+* [x] HTTPS / SSL support
+* [x] Linux self-contained builds
 
-## Roadmap
+## Planned
 
-### 🔧 Core Improvements
-- [✅] **Modular folder contents** — cleaner, more flexible directory listing system
-- [✅] **Error pages in separate folder** — move 404/403 pages out of the public directory
-- [✅] **Dynamic MIME types** — extend and improve MIME type detection
-- [ ] **Professional logging** — structured, leveled log output
-- [✅] **Query parameter parsing** — read and handle URL query strings
-- [✅] **System files vs. public files** — separate internal server files from served content
-
-### 🌐 API
-- [✅] **API endpoints & JSON** — serve JSON responses from defined endpoints
-
-### 🔒 Security & Platform
-- [ ] **SSL / HTTPS** — serve over TLS with certificate configuration
-- [ ] **Linux support** — cross-platform compatibility
+* [ ] Virtual hosts
+* [ ] Rate limiting
+* [ ] Access control lists (ACL)
+* [ ] Configuration hot reload
+* [ ] WebSocket proxy support
+* [] Compression (Gzip/Brotli)
 
 ---
 
-## Built With
+# 🛠️ Built With
 
-![C#](https://img.shields.io/badge/C%23-239120?style=flat-square&logo=csharp&logoColor=white)
-![.NET](https://img.shields.io/badge/.NET-512BD4?style=flat-square&logo=dotnet&logoColor=white)
+* System.Net.HttpListener
+* System.Net.Http.HttpClient
+* .NET 6+
+* an extreme amount of patience
 
-- `System.Net.HttpListener` — built-in .NET HTTP server
-- No external dependencies
+**No external NuGet packages. No unnecessary dependencies needed.**
 
 ---
 
-## License
+# 📄 License
 
-MIT — do whatever you want with it.
+Released under the MIT License.
+
+Use it, modify it, distribute it, or build on top of it — no restrictions beyond the MIT license terms.
